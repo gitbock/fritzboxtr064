@@ -55,3 +55,9 @@ fritzboxtr064:pass=Fr!tZP@ssw0rd
 ## Known issues
 * maconline is (sometimes?) not supported for static addressing (not using DHCP in fritzbox)
 
+## Debug Logging
+insert the following line into you logback.xml or logback_debug.xml
+```
+<!-- FritzBox TR064 binding -->
+<logger name="org.openhab.binding.fritzboxtr064" level="DEBUG" />
+```
