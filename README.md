@@ -22,7 +22,7 @@ String  fboxWanIP           "FBox WAN IP [%s]"          {fritzboxtr064="wanip"}
 Switch  fboxWifi24          "2,4GHz Wifi"               {fritzboxtr064="wifi24Switch"}
 Switch  fboxWifi50          "5,0GHz Wifi"               {fritzboxtr064="wifi50Switch"}
 Switch  fboxGuestWifi       "Guest Wifi"                {fritzboxtr064="wifiGuestSwitch"}
-Contact cFboxMacOnline      "Anwesend (WLAN) %d"   {fritzboxtr064="maconline:11-11-11-11-11-11" }
+Contact cFboxMacOnline      "Anwesend (WLAN) [%s]"      {fritzboxtr064="maconline:11-11-11-11-11-11" }
 
 
 ```
