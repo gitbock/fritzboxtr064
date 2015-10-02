@@ -15,6 +15,13 @@ Features:
 * getting external IP address of fbox
 * getting fbox model name
 
+## Download
+Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
+
+## Installation
+Put the *.jar file into your openHAB "addons" directory.
+
+
 ## Item Binding
 ```
 String  fboxName            "FBox Modell [%s]"          {fritzboxtr064="modelName"}
