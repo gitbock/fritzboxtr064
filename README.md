@@ -21,8 +21,9 @@ Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top 
 ## Installation
 Put the *.jar file into your openHAB "addons" directory.
 
+## Configuration
 
-## Item Binding
+### Item Binding
 ```
 String  fboxName            "FBox Modell [%s]"          {fritzboxtr064="modelName"}
 String  fboxWanIP           "FBox WAN IP [%s]"          {fritzboxtr064="wanip"}
@@ -34,7 +35,7 @@ Contact cFboxMacOnline      "Anwesend (WLAN) [%s]"      {fritzboxtr064="maconlin
 
 ```
 
-## openhab.cfg
+### openhab.cfg
 Add the following to your openhab.cfg and configure the parameters:
 
 
