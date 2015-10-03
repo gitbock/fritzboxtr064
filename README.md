@@ -60,7 +60,7 @@ fritzboxtr064:pass=Fr!tZP@ssw0rd
 ```
 
 ## Known issues
-* maconline is (sometimes?) not supported for static addressing (not using DHCP in fritzbox)
+* maconline will (sometimes?) not return the proper online state when static addressing is used (when not using DHCP in fritzbox)
 
 ## Debug Logging
 Insert the following line into you logback.xml or logback_debug.xml inside the <configuration> tag.
