@@ -15,19 +15,27 @@ Features:
 * getting external IP address of fbox
 * getting fbox model name
 
-## Item Binding
+## Download
+Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
+
+## Installation
+Put the *.jar file into your openHAB "addons" directory.
+
+## Configuration
+
+### Item Binding
 ```
 String  fboxName            "FBox Modell [%s]"          {fritzboxtr064="modelName"}
 String  fboxWanIP           "FBox WAN IP [%s]"          {fritzboxtr064="wanip"}
 Switch  fboxWifi24          "2,4GHz Wifi"               {fritzboxtr064="wifi24Switch"}
 Switch  fboxWifi50          "5,0GHz Wifi"               {fritzboxtr064="wifi50Switch"}
 Switch  fboxGuestWifi       "Guest Wifi"                {fritzboxtr064="wifiGuestSwitch"}
-Contact cFboxMacOnline      "Anwesend (WLAN) %d"   {fritzboxtr064="maconline:11-11-11-11-11-11" }
+Contact cFboxMacOnline      "Anwesend (WLAN) [%s]"      {fritzboxtr064="maconline:11-11-11-11-11-11" }
 
 
 ```
 
-## openhab.cfg
+### openhab.cfg
 Add the following to your openhab.cfg and configure the parameters:
 
 
@@ -53,5 +61,26 @@ fritzboxtr064:pass=Fr!tZP@ssw0rd
 ```
 
 ## Known issues
-* maconline is (sometimes?) not supported for static addressing (not using DHCP in fritzbox)
+* maconline will (sometimes?) not return the proper online state when static addressing is used (when not using DHCP in fritzbox)
+* Smartphones sometimes tend to disable Wifi when sleeping to save battery. When this happens, presence detection shows device as offline of course. On Android to prevent disabling Wifi and stay connected the following settings can help:
+  * set Wifi only to the band you are using, not auto
+  * set stay awake option and enable detection option
+ 
 
+![screenshot1](http://abload.de/img/screenshot_2015-10-058qse4.png)
+![screenshot2](http://abload.de/img/screenshot_2015-10-05zqskj.jpg)
+
+## Debug Logging
+Insert the following line into you logback.xml or logback_debug.xml inside the configuration tag.
+
+```
+<configuration scan="true">
+    [...]
+
+    <!-- FritzBox TR064 binding -->
+    <logger name="org.openhab.binding.fritzboxtr064" level="DEBUG" />
+
+    [...]
+</configuration>
+```
+After that, watch your openhab.log file for extended log output.
