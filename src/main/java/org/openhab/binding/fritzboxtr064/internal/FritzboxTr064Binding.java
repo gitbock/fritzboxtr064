@@ -58,6 +58,11 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	//PW
 	private String _pw; 
 	
+	// Call monitor class/including thread
+	private CallMonitor _callMonitor;
+	
+	
+	
 	/** 
 	 * the refresh interval which is used to poll values from the FritzboxTr064
 	 * server (optional, defaults to 60000ms)
@@ -122,7 +127,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	 * @param configuration Updated configuration properties
 	 */
 	public void modified(final Map<String, Object> configuration) {
-		// update the internal configuration accordingly
+
 	}
 	
 	/**
@@ -141,8 +146,11 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	 */
 	public void deactivate(final int reason) {
 		this.bundleContext = null;
-		// deallocate resources here that are no longer needed and 
-		// should be reset when activating this binding again
+		
+		//indicate that call monitor was stopped
+		this._callMonitor.shutdownReconnectJob();
+		this._callMonitor.stopThread();
+		this._callMonitor = null;
 	}
 
 	
@@ -175,6 +183,19 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		for (FritzboxTr064BindingProvider provider : providers) { 
 			for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding
 				FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); // extract itemconfig for current item
+				//check if item was configured that requires call monitor
+				if(conf.getConfigString().startsWith("callmonitor")){
+					//check if we need to start call monitor
+					if(_callMonitor == null){ //not started yet
+						logger.debug("Call Monitor is not running. Configured items require call monitor. Starting...");
+						_callMonitor = new CallMonitor(_url, eventPublisher, providers);
+						_callMonitor.setupReconnectJob();
+						_callMonitor.startThread();
+					}
+					continue; //dont try to resolve callmonitor items by tr064 protocol
+				}
+
+				// TR064 protocol usage 
 				String tr064result = _fboxComm.getTr064Value(conf.getConfigString()); //try to get value for this item config string from fbox
 				if(tr064result == null){ //if value cannot be read
 					tr064result = "ERR";

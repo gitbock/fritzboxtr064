@@ -17,10 +17,13 @@ Import-Package: javax.net.ssl,
  org.openhab.core.library.items,
  org.openhab.core.library.types,
  org.openhab.core.types,
+ org.openhab.library.tel.types,
  org.openhab.model.item.binding,
  org.osgi.framework,
  org.osgi.service.component,
  org.osgi.service.event,
+ org.quartz,
+ org.quartz.impl,
  org.slf4j
 Export-Package: org.openhab.binding.fritzboxtr064
 Bundle-DocURL: http://www.openhab.org
