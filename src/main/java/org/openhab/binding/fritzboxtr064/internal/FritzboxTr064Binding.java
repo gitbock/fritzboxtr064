@@ -147,10 +147,11 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	public void deactivate(final int reason) {
 		this.bundleContext = null;
 		
-		//indicate that call monitor was stopped
-		this._callMonitor.shutdownReconnectJob();
-		this._callMonitor.stopThread();
-		this._callMonitor = null;
+		if(this._callMonitor != null){
+			this._callMonitor.shutdownReconnectJob();
+			this._callMonitor.stopThread();
+			this._callMonitor = null;
+		}
 	}
 
 	
@@ -247,7 +248,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		// the code being executed when a state was sent on the openHAB
 		// event bus goes here. This method is only called if one of the 
 		// BindingProviders provide a binding for the given 'itemName'.
-		logger.debug("internalReceiveUpdate({},{}) is called!", itemName, newState);
+		logger.debug("internalReceiveUpdate({},{}) is called! NOT IMPLEMENTED yet", itemName, newState);
 	}
 	
 }

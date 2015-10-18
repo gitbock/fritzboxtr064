@@ -45,12 +45,6 @@ public class CallMonitor extends Thread{
 	//port number to connect at fbox
 	private final int _DEFAULT_MONITOR_PORT = 1012;
 	
-	//Thread control flag
-	protected boolean _interrupted = false;
-	
-	//time to wait before reconnecting
-	private long _reconnectTime = 60000L;
-	
 	// Event Publisher from parent Generic Binding
 	// to be able to pass item updates within this class
 	protected EventPublisher _eventPublisher;
@@ -59,7 +53,7 @@ public class CallMonitor extends Thread{
 	protected final static Logger logger = LoggerFactory.getLogger(FritzboxTr064Binding.class);
 	
 	// Main Monitor Thread receiving fbox messages
-	private static CallMonitorThread _monitorThread;
+	protected CallMonitorThread _monitorThread;
 	
 	//ip and port to connect
 	protected String _ip;
@@ -68,7 +62,8 @@ public class CallMonitor extends Thread{
 	
 	//Providers to be able to extract all required items
 	private Collection<FritzboxTr064BindingProvider> _providers;
-
+	
+	protected static CallMonitor _instance;
 	
 	/***
 	 * 
@@ -81,6 +76,7 @@ public class CallMonitor extends Thread{
 		this._ip = parseIpFromUrl(url);
 		this._port = _DEFAULT_MONITOR_PORT;
 		this._providers = providers;
+		_instance = this;
 	}
 	
 	
@@ -105,26 +101,7 @@ public class CallMonitor extends Thread{
 	}
 
 
-	/**
-	 * A quartz scheduler job to simply do a reconnection to the FritzBox.
-	 */
-	public class ReconnectJob implements Job {
-		
-		public void execute(JobExecutionContext arg0) throws JobExecutionException {
-			Logger logger = LoggerFactory.getLogger(FritzboxTr064Binding.class);
-			logger.info("Reconnecting Job executed");
-			if (_monitorThread != null) {
-				// let's end the old thread
-				_monitorThread.interrupt();
-				_monitorThread = null;
-			}
-			// create a new thread for listening to the FritzBox
-			_monitorThread = new CallMonitorThread();
-			_monitorThread.start();
-			
-		}
-
-	}
+	
 	
 	/***
 	 * reset the connection to fbox periodically
@@ -132,20 +109,19 @@ public class CallMonitor extends Thread{
 	public void setupReconnectJob(){
 		try {
 			String cronPattern = "0 0 0 * * ?";
+			//String cronPattern = "0 * * * * ?"; //every minute for testing
 			Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
                     
             JobKey jobKey = jobKey("Reconnect", "FritzBox");
             TriggerKey triggerKey = triggerKey("Reconnect", "FritzBox");
             
             if (sched.checkExists(jobKey)) {
-                logger.debug("Daily reconnection job already exists");
+                logger.debug("reconnection job already exists");
             } else {
                 CronScheduleBuilder scheduleBuilder = 
                 		CronScheduleBuilder.cronSchedule(cronPattern);
                 
-                JobDetail job = newJob(ReconnectJob.class)
-                        .withIdentity(jobKey)
-                        .build();
+                JobDetail job = newJob(ReconnectJob.class).withIdentity(jobKey).build();
 
                 CronTrigger trigger = newTrigger()
                         .withIdentity(triggerKey)
@@ -153,7 +129,7 @@ public class CallMonitor extends Thread{
                         .build();
 
                 sched.scheduleJob(job, trigger);
-                logger.debug("Scheduled a daily reconnection to FritzBox: "+cronPattern);
+                logger.debug("Scheduled reconnection job to FritzBox: "+cronPattern);
             }
 		} catch (SchedulerException e) {
 			logger.warn("Could not create daily reconnection job", e);
@@ -168,7 +144,6 @@ public class CallMonitor extends Thread{
 		try {
 			sched = StdSchedulerFactory.getDefaultScheduler();
 			JobKey jobKey = jobKey("Reconnect", "FritzBox");
-		    TriggerKey triggerKey = triggerKey("Reconnect", "FritzBox");
 		    if (sched.checkExists(jobKey)) {
 		        logger.debug("Found reconnection job. Shutting down...");
 		        sched.deleteJob(jobKey);
@@ -177,34 +152,57 @@ public class CallMonitor extends Thread{
 		} catch (SchedulerException e) {
 			logger.warn("Error shutting down reconnect job: "+e.getLocalizedMessage());
 		}
-        
-	
-		
 	}
 
-
-	
+	/**
+	 * A quartz scheduler job to simply do a reconnection to the FritzBox.
+	 */
+	public static class ReconnectJob implements Job {
+		public void execute(JobExecutionContext arg0) throws JobExecutionException {
+			Logger logger = LoggerFactory.getLogger(FritzboxTr064Binding.class);
+			logger.info("Reconnect Job executed");
+			_instance.stopThread();
+			
+			// create a new thread for listening to the FritzBox
+			_instance._monitorThread = _instance.new CallMonitorThread();
+			
+			//Wait before reconnect
+			try {
+				sleep(5000L);
+			} catch (InterruptedException e) {
+				
+			}
+			logger.debug("Reconnect Job starts new monitor Thread");
+			_instance._monitorThread.start();
+			
+		}
+	}
 	
 	
 	/***
 	 * thread for setting up socket to fbox, listening for messages, parsing them
-	 * and updating items
+	 * and updating items. Most of this code is from Kai Kreuzers original 
+	 * fritzbox binding!
+	 * 
 	 * @author gitbock
 	 *
 	 */
-	private class CallMonitorThread extends Thread{
-
+	public class CallMonitorThread extends Thread{
 		
-		
-		//Providers to be able to extract all required items
-		//private Collection<FritzboxTr064BindingProvider> _providers;
-		
-		// Event Publisher from parent Generic Binding
-		// to be able to pass item updates within this class
-		//private EventPublisher _eventPublisher;
+		/***
+		 * Devnote: 
+		 * Objects need to be set here, not in parent class!
+		 * Otherwise compiler can see them, but at runtime wrong values are given(?) 
+		 */
 		
 		//Socket to connect
 		private Socket _socket; 
+		
+		//Thread control flag
+		private boolean _interrupted = false;
+		
+		//time to wait before reconnecting
+		private long _reconnectTime = 60000L;
 		
 		public CallMonitorThread() {
 			
@@ -212,12 +210,12 @@ public class CallMonitor extends Thread{
 		
 		@Override
 		public void run() {
+			logger.debug("Thread ["+ Thread.currentThread().getId() +"] is interrupted: "+_interrupted);
 			while (!_interrupted) {
-				
 				if (_ip != null) {
 					BufferedReader reader = null;
 					try {
-						logger.info("Attempting connection to FritzBox on {}:{}...", _ip, _port);
+						logger.info("Thread ["+Thread.currentThread().getId()+"] attempting connection to FritzBox on {}:{}...", _ip, _port);
 						_socket = new Socket(_ip, _port);
 						reader = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
 						// reset the retry interval
@@ -245,7 +243,6 @@ public class CallMonitor extends Thread{
 									}
 									else{
 										logger.error("Call Event could not be parsed!");
-							
 									}
 									try {
 										// wait a moment, so that rules can be
@@ -263,6 +260,15 @@ public class CallMonitor extends Thread{
 									logger.error("Lost connection to FritzBox", e);
 								}
 								break;
+							}
+							finally{
+								// allow a few seconds until reconnect.
+								// needed for interrupt state to settle?
+								try {
+									sleep(5000L);
+								} catch (InterruptedException e) {
+									
+								}
 							}
 						}
 					}
@@ -285,16 +291,27 @@ public class CallMonitor extends Thread{
 					org.openhab.core.types.State state = null;
 
 					if (ce.get_callType().equals("DISCONNECT")) {
+						//1.12.05⌴12:00:10;DISCONNECT;0;5;
+						//reset states of callmonitor items to 0 for all items regardless of type
 						state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.OFF : CallType.EMPTY;
 					}
-					if (ce.get_callType().equals("RING")) {
-						state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo());
+					else if (ce.get_callType().equals("RING")) { //first event when call is incoming
+						//1.12.05⌴12:00:15;RING;0;5551234;5556789;SIP0;
+						if(conf.getConfigString().equals("callmonitor_ringing")){
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), ce.get_externalNo() );
+						}
 					}
-					if (ce.get_callType().equals("CONNECT")){
-						state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo());
+					else if (ce.get_callType().equals("CONNECT")){ //when call is answered/running
+						//1.12.05⌴12:00:05;CONNECT;0;0;0180537489269;
+						if(conf.getConfigString().equals("callmonitor_active")){ // only for "active" items
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo());
+						}
 					}
-					if (ce.get_callType().equals("CALL")){
-						state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), ce.get_externalNo());
+					else if (ce.get_callType().equals("CALL")){ //outgoing call
+						//1.12.05⌴12:00:00;CALL;0;0;5557890;0180537489269;ISDN;
+						if(conf.getConfigString().equals("callmonitor_outgoing")){
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo() );
+						}
 					}
 					
 					if (state != null) {
@@ -304,26 +321,24 @@ public class CallMonitor extends Thread{
 				}
 			}
 		}
-			
-			
-			
-			
-			
-		
+
 		
 		/**
-		 * Notifies the thread to terminate itself. The current connection will
-		 * be closed.
+		 * Close socket and stop running thread
 		 */
 		public void interrupt() {
 			_interrupted = true;
 			if (_socket != null) {
 				try {
+					
 					_socket.close();
 					logger.debug("Socket to FritzBox closed");
 				} catch (IOException e) {
 					logger.warn("Existing connection to FritzBox cannot be closed", e);
 				}
+			}
+			else{
+				logger.debug("Socket to FritzBox not open. Not closing.");
 			}
 		}
 
