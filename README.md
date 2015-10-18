@@ -14,6 +14,9 @@ Features:
 * switching on/off 2,4Hz Wifi, 5GHz Wifi and Guest Wifi (if any)
 * getting external IP address of fbox
 * getting fbox model name
+* call monitor
+ * Switch Item: Receives "ON" state when call is incoming
+ * Call Items: Shows external an internal number for incoming/outgoing calls
 
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
@@ -25,15 +28,22 @@ Put the *.jar file into your openHAB "addons" directory.
 
 ### Item Binding
 ```
-String  fboxName            "FBox Modell [%s]"          {fritzboxtr064="modelName"}
+String  fboxName            "FBox Model [%s]"           {fritzboxtr064="modelName"}
 String  fboxWanIP           "FBox WAN IP [%s]"          {fritzboxtr064="wanip"}
 Switch  fboxWifi24          "2,4GHz Wifi"               {fritzboxtr064="wifi24Switch"}
 Switch  fboxWifi50          "5,0GHz Wifi"               {fritzboxtr064="wifi50Switch"}
 Switch  fboxGuestWifi       "Guest Wifi"                {fritzboxtr064="wifiGuestSwitch"}
-Contact cFboxMacOnline      "Anwesend (WLAN) [%s]"      {fritzboxtr064="maconline:11-11-11-11-11-11" }
+Contact cFboxMacOnline      "Presence (WiFi) [%s]"      {fritzboxtr064="maconline:11-11-11-11-11-11" }
 
+# only when using call monitor
+Switch  fboxRinging	 	  	"Phone ringing [%s]"                {fritzboxtr064="callmonitor_ringing" }
+Call    fboxIncomingCall   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing" } 
+Call    fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_outgoing" }
 
 ```
+
+
+
 
 ### openhab.cfg
 Add the following to your openhab.cfg and configure the parameters:
@@ -84,3 +94,23 @@ Insert the following line into you logback.xml or logback_debug.xml inside the c
 </configuration>
 ```
 After that, watch your openhab.log file for extended log output.
+
+
+## Hints
+
+### Sitemap
+For the "Call" items use "Text" in your sitemap 
+
+### Map for Presence Detection
+Use a map for presence detection item:
+Create file $openhab_home/configurations/transform/presence.map and add
+```
+1=present
+0=not present
+```
+Now, as item configuration use:
+```
+Contact cFboxMacOnline		"Presence (Wifi) [MAP(presence.map):%d]"	<present>		{fritzboxtr064="maconline:11-22-33-44-55-66 }
+```
+
+
