@@ -59,6 +59,8 @@ public class CallMonitor extends Thread{
 	protected String _ip;
 	protected int _port;
 	
+	//Phonebook Manager to resolve phone numbers in names
+	private PhonebookManager _pbm;
 	
 	//Providers to be able to extract all required items
 	private Collection<FritzboxTr064BindingProvider> _providers;
@@ -71,11 +73,12 @@ public class CallMonitor extends Thread{
 	 * @param ep eventPublisher to pass updates to items
 	 * @param providers all items relevant for this binding
 	 */
-	public CallMonitor(String url, EventPublisher ep, Collection<FritzboxTr064BindingProvider> providers ){
+	public CallMonitor(String url, EventPublisher ep, Collection<FritzboxTr064BindingProvider> providers, PhonebookManager pbm ){
 		this._eventPublisher = ep;
 		this._ip = parseIpFromUrl(url);
 		this._port = _DEFAULT_MONITOR_PORT;
 		this._providers = providers;
+		this._pbm = pbm;
 		_instance = this;
 	}
 	
@@ -160,7 +163,7 @@ public class CallMonitor extends Thread{
 	public static class ReconnectJob implements Job {
 		public void execute(JobExecutionContext arg0) throws JobExecutionException {
 			Logger logger = LoggerFactory.getLogger(FritzboxTr064Binding.class);
-			logger.info("Reconnect Job executed");
+			logger.info("Fritzbox Reconnect Job executed");
 			_instance.stopThread();
 			
 			// create a new thread for listening to the FritzBox
@@ -210,12 +213,12 @@ public class CallMonitor extends Thread{
 		
 		@Override
 		public void run() {
-			logger.debug("Thread ["+ Thread.currentThread().getId() +"] is interrupted: "+_interrupted);
+			logger.debug("Callmonitor Thread ["+ Thread.currentThread().getId() +"] is interrupted: "+_interrupted);
 			while (!_interrupted) {
 				if (_ip != null) {
 					BufferedReader reader = null;
 					try {
-						logger.info("Thread ["+Thread.currentThread().getId()+"] attempting connection to FritzBox on {}:{}...", _ip, _port);
+						logger.info("Callmonitor Thread ["+Thread.currentThread().getId()+"] attempting connection to FritzBox on {}:{}...", _ip, _port);
 						_socket = new Socket(_ip, _port);
 						reader = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
 						// reset the retry interval
@@ -282,35 +285,48 @@ public class CallMonitor extends Thread{
 		 * @param ce call event to process
 		 */
 		private void handleEventType(CallEvent ce) {
+			//resolving caller name if external number is present in call event
+			String callerName = ce.get_externalNo();
+			if(ce.get_externalNo() != null && !ce.get_externalNo().isEmpty()){
+				 callerName = _pbm.getNameFromNumber(ce.get_externalNo(), 7);
+			}
+			
+			
+			if(callerName == null){
+				callerName = ce.get_externalNo(); //if no match was found, reset to number
+			}
+			
 			//cycle through all items
-			logger.debug("Searching item to receive call event: "+ce.toString());
+			logger.debug("Searching item to pass call event: "+ce.get_callType());
 			for (FritzboxTr064BindingProvider provider : _providers) { 
 				for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding		
 					FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); //config object for item
 					Class<? extends Item> itemType = conf.getItemType(); //which type is this item?
 					org.openhab.core.types.State state = null;
-
+					
 					if (ce.get_callType().equals("DISCONNECT")) {
 						//1.12.05⌴12:00:10;DISCONNECT;0;5;
-						//reset states of callmonitor items to 0 for all items regardless of type
-						state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.OFF : CallType.EMPTY;
+						//reset states of callmonitor items to 0 for ALL items regardless of type
+						if(conf.getConfigString().equals("callmonitor_ringing") || conf.getConfigString().equals("callmonitor_active") || conf.getConfigString().equals("callmonitor_outgoing")){
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.OFF : CallType.EMPTY;
+						}
 					}
 					else if (ce.get_callType().equals("RING")) { //first event when call is incoming
 						//1.12.05⌴12:00:15;RING;0;5551234;5556789;SIP0;
 						if(conf.getConfigString().equals("callmonitor_ringing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), ce.get_externalNo() );
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), callerName );
 						}
 					}
 					else if (ce.get_callType().equals("CONNECT")){ //when call is answered/running
 						//1.12.05⌴12:00:05;CONNECT;0;0;0180537489269;
 						if(conf.getConfigString().equals("callmonitor_active")){ // only for "active" items
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo());
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(callerName, ce.get_internalNo());
 						}
 					}
 					else if (ce.get_callType().equals("CALL")){ //outgoing call
 						//1.12.05⌴12:00:00;CALL;0;0;5557890;0180537489269;ISDN;
 						if(conf.getConfigString().equals("callmonitor_outgoing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_externalNo(), ce.get_internalNo() );
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(callerName, ce.get_internalNo() );
 						}
 					}
 					

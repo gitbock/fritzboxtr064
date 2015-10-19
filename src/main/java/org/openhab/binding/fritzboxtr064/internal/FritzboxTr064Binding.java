@@ -61,6 +61,8 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	// Call monitor class/including thread
 	private CallMonitor _callMonitor;
 	
+	//Phonebook Object for managing all Phonebook related work
+	private PhonebookManager _phoneBookMgr;
 	
 	
 	/** 
@@ -69,9 +71,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	 */
 	private long refreshInterval = 60000;
 	
-	/***
-	 * holds Fbox connection
-	 */
+	//holds Fbox TR064 connection
 	private Tr064Comm _fboxComm = null;
 	
 	
@@ -181,18 +181,26 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		if(_fboxComm == null){
 			_fboxComm = new Tr064Comm(_url, _user, _pw);
 		}
+		
 		for (FritzboxTr064BindingProvider provider : providers) { 
 			for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding
 				FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); // extract itemconfig for current item
 				//check if item was configured that requires call monitor
 				if(conf.getConfigString().startsWith("callmonitor")){
+					// if callmonitor items are used, we also try to download phonebooks 
+					if(_phoneBookMgr == null){
+						_phoneBookMgr = new PhonebookManager(_fboxComm);
+						_phoneBookMgr.downloadPhonebooks();
+						String test = _phoneBookMgr.getNameFromNumber("01734355056", 7);
+					}
 					//check if we need to start call monitor
 					if(_callMonitor == null){ //not started yet
 						logger.debug("Call Monitor is not running. Configured items require call monitor. Starting...");
-						_callMonitor = new CallMonitor(_url, eventPublisher, providers);
+						_callMonitor = new CallMonitor(_url, eventPublisher, providers, _phoneBookMgr);
 						_callMonitor.setupReconnectJob();
 						_callMonitor.startThread();
 					}
+					
 					continue; //dont try to resolve callmonitor items by tr064 protocol
 				}
 

@@ -195,9 +195,8 @@ public class Tr064Comm {
 					dataInValue = dataInValue.replaceAll("-", ":");
 				}
 				beDataNode.addTextNode(dataInValue); //add data which should be requested from fbox for this service
-				logger.debug("Raw SOAP Request to be sent to fbox: " + soapToString(msg));
 			}
-			
+			logger.debug("Raw SOAP Request to be sent to fbox: " + soapToString(msg));
 			
 		} catch (Exception e) {
 			logger.error("Error constructing request SOAP msg for getting parameter");
@@ -541,8 +540,11 @@ public class Tr064Comm {
 	 *  which are offered by TR064. Saves it into local list
 	 */
 	private void readAllServices(){
-		
 		Document xml = getFboxXmlResponse(_url+"/tr64desc.xml");
+		if(xml == null){
+			logger.error("Could not xml response services");
+			return;
+		}
 		NodeList nlServices = xml.getElementsByTagName("service"); //get all service nodes
 		Node currentNode = null;
 		XPath xPath = XPathFactory.newInstance().newXPath();
@@ -565,7 +567,7 @@ public class Tr064Comm {
 	
 	/***
 	 * populates local static mapping table
-	 * can be refactored to read from config file later?
+	 * todo: refactore to read from config file later?
 	 * sets the parser based on the itemcommand -> soap value parser "svp" anonymous method
 	 * for each mapping
 	 * 
@@ -665,6 +667,11 @@ public class Tr064Comm {
 		if(svc5GHzWifi == null && svcGuestWifi == null){ //WLANConfiguration3+2 not present > no 5Ghz Wifi or Guest Wifi
 			logger.debug("Found 2,4 Ghz Wifi");
 		}
+		
+		//Phonebook Download
+		// itemcommand is dummy: not a real item
+		ItemMap imPhonebook = new ItemMap("phonebook", "GetPhonebook", "urn:X_AVM-DE_OnTel-com:serviceId:X_AVM-DE_OnTel1", "NewPhonebookID", "NewPhonebookURL");
+		_alItemMap.add(imPhonebook);
 	
 	}
 	
@@ -674,12 +681,13 @@ public class Tr064Comm {
 	 * as XML Document, ready for parsing
 	 * @return
 	 */
-	private Document getFboxXmlResponse(String url){
+	public Document getFboxXmlResponse(String url){
 		Document tr064response = null;
 		HttpGet httpGet = new HttpGet(url);
 		try {
 			CloseableHttpResponse resp = _httpClient.execute(httpGet, _httpClientContext);
 			int responseCode = resp.getStatusLine().getStatusCode();
+			logger.debug("Got Raw response from http client: "+resp.toString());
 			if(responseCode == 200){
 				HttpEntity entity = resp.getEntity();
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -687,9 +695,13 @@ public class Tr064Comm {
 				tr064response = db.parse(entity.getContent());
 				EntityUtils.consume(entity);
 			}
+			else{
+				logger.error("Failed to receive valid response from httpGet");
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error("Failed to receive valid response from httpGet");
 		}
 		return tr064response;
 	}
