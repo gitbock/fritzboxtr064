@@ -10,10 +10,8 @@ package org.openhab.binding.fritzboxtr064.internal;
 
 import java.util.Map;
 
-
 import org.openhab.binding.fritzboxtr064.FritzboxTr064BindingProvider;
 import org.openhab.binding.fritzboxtr064.internal.FritzboxTr064GenericBindingProvider.FritzboxTr064BindingConfig;
-
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.items.Item;
@@ -61,10 +59,6 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	// Call monitor class/including thread
 	private CallMonitor _callMonitor;
 	
-	//Phonebook Object for managing all Phonebook related work
-	private PhonebookManager _phoneBookMgr;
-	
-	
 	/** 
 	 * the refresh interval which is used to poll values from the FritzboxTr064
 	 * server (optional, defaults to 60000ms)
@@ -74,6 +68,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	//holds Fbox TR064 connection
 	private Tr064Comm _fboxComm = null;
 	
+	private PhonebookManager _pbm = null;
 	
 	public FritzboxTr064Binding() {
 	}
@@ -119,7 +114,18 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		this._pw = fboxpw;
 		this._user = fboxuser;
 		this._url = fboxurl;
+		
+		if(_fboxComm == null){
+			_fboxComm = new Tr064Comm(_url, _user, _pw);
+		}
+
 		setProperlyConfigured(true);
+		
+		
+		
+		
+		
+		
 	}
 	
 	/**
@@ -177,33 +183,30 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	@Override
 	protected void execute() {
 		logger.debug("FritzboxTr064 executing...");
-		//No need to check for set user/pw/url because otherwise binding would not execute at all (?)
-		if(_fboxComm == null){
-			_fboxComm = new Tr064Comm(_url, _user, _pw);
-		}
+		
 		
 		for (FritzboxTr064BindingProvider provider : providers) { 
 			for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding
 				FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); // extract itemconfig for current item
-				//check if item was configured that requires call monitor
 				if(conf.getConfigString().startsWith("callmonitor")){
-					// if callmonitor items are used, we also try to download phonebooks 
-					if(_phoneBookMgr == null){
-						_phoneBookMgr = new PhonebookManager(_fboxComm);
-						_phoneBookMgr.downloadPhonebooks();
-						String test = _phoneBookMgr.getNameFromNumber("01734355056", 7);
-					}
 					//check if we need to start call monitor
 					if(_callMonitor == null){ //not started yet
-						logger.debug("Call Monitor is not running. Configured items require call monitor. Starting...");
-						_callMonitor = new CallMonitor(_url, eventPublisher, providers, _phoneBookMgr);
+						logger.debug("call monitor is not running. Configured items require call monitor -> Starting call monitor...");
+						
+						if(_pbm == null){
+							logger.debug("Downloading phonebooks");
+							_pbm = new PhonebookManager(_fboxComm);
+							_pbm.downloadPhonebooks();
+						}
+						
+						
+						_callMonitor = new CallMonitor(_url, eventPublisher, providers, _pbm);
 						_callMonitor.setupReconnectJob();
 						_callMonitor.startThread();
 					}
-					
-					continue; //dont try to resolve callmonitor items by tr064 protocol
+					continue; //make sure, no callmonitor items are processed by tr064
 				}
-
+				
 				// TR064 protocol usage 
 				String tr064result = _fboxComm.getTr064Value(conf.getConfigString()); //try to get value for this item config string from fbox
 				if(tr064result == null){ //if value cannot be read

@@ -60,7 +60,7 @@ public class CallMonitor extends Thread{
 	protected int _port;
 	
 	//Phonebook Manager to resolve phone numbers in names
-	private PhonebookManager _pbm;
+	protected PhonebookManager _pbm;
 	
 	//Providers to be able to extract all required items
 	private Collection<FritzboxTr064BindingProvider> _providers;
@@ -111,8 +111,9 @@ public class CallMonitor extends Thread{
 	 */
 	public void setupReconnectJob(){
 		try {
-			String cronPattern = "0 0 0 * * ?";
-			//String cronPattern = "0 * * * * ?"; //every minute for testing
+			//String cronPattern = "0 0 0 * * ?"; //every day
+			//String cronPattern = "0 * * * * ?"; //every minute
+			String cronPattern = "0 0 0/2 * * ?"; //every 2 hrs
 			Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
                     
             JobKey jobKey = jobKey("Reconnect", "FritzBox");
@@ -242,7 +243,7 @@ public class CallMonitor extends Thread{
 									logger.debug("Received raw call string from fbox: "+line);
 									CallEvent ce = new CallEvent(line);
 									if(ce.parseRawEvent()){
-										handleEventType(ce);
+										handleCallEvent(ce);
 									}
 									else{
 										logger.error("Call Event could not be parsed!");
@@ -284,17 +285,28 @@ public class CallMonitor extends Thread{
 		 * 
 		 * @param ce call event to process
 		 */
-		private void handleEventType(CallEvent ce) {
-			//resolving caller name if external number is present in call event
-			String callerName = ce.get_externalNo();
-			if(ce.get_externalNo() != null && !ce.get_externalNo().isEmpty()){
-				 callerName = _pbm.getNameFromNumber(ce.get_externalNo(), 7);
+		private void handleCallEvent(CallEvent ce) {
+			
+			// Always try to resolve number to name. If not wanted return number instead later
+			// pbm can be null, if no item wanted resolving!
+			String callerName = "";
+			if(_pbm != null){
+				//resolving caller name if external number is present in call event
+				if(ce.get_externalNo() == null || ce.get_externalNo().isEmpty()){
+					 logger.info("no external number provided by fbox. Will not resolve name");
+				}
+				else{
+					logger.info("resolving name for number "+ ce.get_externalNo());
+					callerName = _pbm.getNameFromNumber(ce.get_externalNo(), 7);
+					if(callerName == null){
+						callerName = "Name not found for "+ce.get_externalNo(); //if no match was found, reset to number
+					}
+					else{
+						logger.info("external number resolved to: "+callerName);
+					}
+				}
 			}
 			
-			
-			if(callerName == null){
-				callerName = ce.get_externalNo(); //if no match was found, reset to number
-			}
 			
 			//cycle through all items
 			logger.debug("Searching item to pass call event: "+ce.get_callType());
@@ -303,36 +315,49 @@ public class CallMonitor extends Thread{
 					FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); //config object for item
 					Class<? extends Item> itemType = conf.getItemType(); //which type is this item?
 					org.openhab.core.types.State state = null;
-					
+					String configString = conf.getConfigString();
+					String externalInfo = null; //either name or number as requested by item
+					//number name resolving wanted?
+					if(configString.contains("resolveName")){
+						logger.info("name resolving requested in item "+itemName +". Setting external no. to "+callerName);
+						externalInfo = callerName;
+					}
+					else{
+						logger.info("NO name resolving requested in item "+itemName +". Setting external no. to "+ce.get_externalNo());
+						externalInfo = ce.get_externalNo();
+					}
 					if (ce.get_callType().equals("DISCONNECT")) {
 						//1.12.05⌴12:00:10;DISCONNECT;0;5;
 						//reset states of callmonitor items to 0 for ALL items regardless of type
-						if(conf.getConfigString().equals("callmonitor_ringing") || conf.getConfigString().equals("callmonitor_active") || conf.getConfigString().equals("callmonitor_outgoing")){
+						if(configString.startsWith("callmonitor_ringing") || configString.startsWith("callmonitor_active") || configString.startsWith("callmonitor_outgoing")){
 							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.OFF : CallType.EMPTY;
 						}
 					}
 					else if (ce.get_callType().equals("RING")) { //first event when call is incoming
 						//1.12.05⌴12:00:15;RING;0;5551234;5556789;SIP0;
-						if(conf.getConfigString().equals("callmonitor_ringing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), callerName );
+						if(configString.startsWith("callmonitor_ringing")){
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), externalInfo );
 						}
 					}
 					else if (ce.get_callType().equals("CONNECT")){ //when call is answered/running
 						//1.12.05⌴12:00:05;CONNECT;0;0;0180537489269;
-						if(conf.getConfigString().equals("callmonitor_active")){ // only for "active" items
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(callerName, ce.get_internalNo());
+						if(configString.startsWith("callmonitor_active")){ // only for "active" items
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.get_internalNo());
 						}
 					}
 					else if (ce.get_callType().equals("CALL")){ //outgoing call
 						//1.12.05⌴12:00:00;CALL;0;0;5557890;0180537489269;ISDN;
-						if(conf.getConfigString().equals("callmonitor_outgoing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(callerName, ce.get_internalNo() );
+						if(configString.startsWith("callmonitor_outgoing")){
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.get_internalNo() );
 						}
 					}
 					
 					if (state != null) {
 						logger.debug("Dispatching call type "+ ce.get_callType() +" to item " + itemName + " as "+state.toString());
 						_eventPublisher.postUpdate(itemName, state);
+					}
+					else{
+						logger.debug("Could not determine state for item " + itemName+ ". Not relevant?");
 					}
 				}
 			}

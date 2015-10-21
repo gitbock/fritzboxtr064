@@ -125,7 +125,7 @@ public class CallEvent {
 
 	@Override
 	public String toString() {
-		return "CallEvent raw \""+ _raw +"\" [_timestamp=" + _timestamp + ", _callType="
+		return "CallEvent [_timestamp=" + _timestamp + ", _callType="
 				+ _callType + ", _id=" + _id + ", _externalNo=" + _externalNo
 				+ ", _internalNo=" + _internalNo + ", _connectionType="
 				+ _connectionType + ", _line=" + _line + "]";

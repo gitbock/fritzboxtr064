@@ -37,12 +37,17 @@ public class PhonebookManager {
 	private static final Logger logger = LoggerFactory.getLogger(FritzboxTr064Binding.class);
 	
 	//all PhonebooksEntries
-	private ArrayList<PhoneBookEntry> _alEntries;
+	private ArrayList<PhoneBookEntry> _alEntries = null;
+	
 	
 	public PhonebookManager(Tr064Comm tr064comm){
 		this._tr064comm = tr064comm;
 		this._alEntries = new ArrayList<PhoneBookEntry>();
+		
 	}
+	
+		
+	
 	
 	/***
 	 * Looks up name in phone book entries and returns name and type if found

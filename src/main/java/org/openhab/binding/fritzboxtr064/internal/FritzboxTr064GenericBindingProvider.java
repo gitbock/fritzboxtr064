@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is responsible for parsing the binding configuration.
  * 
- * @author Boris Bock
+ * @author gitbock
  * @since 0.1.0
  */
 public class FritzboxTr064GenericBindingProvider extends AbstractGenericBindingProvider implements FritzboxTr064BindingProvider {
@@ -74,7 +74,7 @@ public class FritzboxTr064GenericBindingProvider extends AbstractGenericBindingP
 	/**
 	 * This is a helper class holding binding specific configuration details
 	 * 
-	 * @author Boris Bock
+	 * @author gitbock
 	 * @since 0.1.0
 	 */
 	public class FritzboxTr064BindingConfig implements BindingConfig {
