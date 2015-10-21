@@ -17,6 +17,7 @@ Features:
 * call monitor
  * Switch Item: Receives "ON" state when call is incoming
  * Call Items: Shows external an internal number for incoming/outgoing calls
+ * Resolve external call number to phonebook name
 
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
@@ -40,6 +41,8 @@ Switch  fboxRinging	 	  	"Phone ringing [%s]"                {fritzboxtr064="cal
 Call    fboxIncomingCall   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing" } 
 Call    fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_outgoing" }
 
+# resolve numbers to names according phonebook
+Call    fboxIncomingCall   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing:resolveName" } 
 ```
 
 
