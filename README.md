@@ -42,7 +42,7 @@ Call    fboxIncomingCall   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="
 Call    fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_outgoing" }
 
 # resolve numbers to names according phonebook
-Call    fboxIncomingCall   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing:resolveName" } 
+Call    fboxIncomingCallResolved   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing:resolveName" } 
 ```
 
 
