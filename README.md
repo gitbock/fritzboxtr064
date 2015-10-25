@@ -78,7 +78,7 @@ fritzboxtr064:pass=Fr!tZP@ssw0rd
 ```
 
 ## Known issues
-* maconline will (sometimes?) not return the proper online state when static addressing is used (when not using DHCP in fritzbox)
+* maconline will (sometimes?) [not return the proper online state] (https://github.com/gitbock/fritzboxtr064/issues/1)
 * Smartphones sometimes tend to disable Wifi when sleeping to save battery. When this happens, presence detection shows device as offline of course. On Android to prevent disabling Wifi and stay connected the following settings can help:
   * set Wifi only to the band you are using, not auto
   * set stay awake option and enable detection option
