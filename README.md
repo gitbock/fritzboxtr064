@@ -28,7 +28,7 @@ Put the *.jar file into your openHAB "addons" directory.
 ## Configuration
 
 ### FritzBox
-* Enable TR06: In the webui goto "Heimnetz" - "Netzwerkeinstellungen": enable option "Zugriff für Anwendungen zulassen" (enabled by default)
+* Enable TR064: In the webui goto "Heimnetz" - "Netzwerkeinstellungen": enable option "Zugriff für Anwendungen zulassen" (enabled by default)
 * Only if you want to use the call monitor feature (items starting with callmonitor_...), enable the interface by dialing #96\*5\* You may disable it again by dialing #96\*4\*
 
 ### Item Binding
