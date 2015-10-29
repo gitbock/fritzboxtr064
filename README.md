@@ -8,7 +8,7 @@ I created a binding for communication with fritzbox using SOAP requests (TR064 p
 * 7360SL (v6.30)
 * 7390
 
-Features:
+**Features:**
 
 * detect if MAC is online in network (presence detection)
 * switching on/off 2,4Hz Wifi, 5GHz Wifi and Guest Wifi (if any)
@@ -18,6 +18,7 @@ Features:
  * Switch Item: Receives "ON" state when call is incoming
  * Call Items: Shows external an internal number for incoming/outgoing calls
  * Resolve external call number to phonebook name
+* Enabling/disabling telephone answering machines (TAMs) 
 
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
