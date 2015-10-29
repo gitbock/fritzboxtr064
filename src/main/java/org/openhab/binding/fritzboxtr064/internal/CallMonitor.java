@@ -293,16 +293,16 @@ public class CallMonitor extends Thread{
 			if(_pbm != null){
 				//resolving caller name if external number is present in call event
 				if(ce.get_externalNo() == null || ce.get_externalNo().isEmpty()){
-					 logger.info("no external number provided by fbox. Will not resolve name");
+					 logger.debug("no external number provided by fbox. Will not resolve name");
 				}
 				else{
-					logger.info("resolving name for number "+ ce.get_externalNo());
+					logger.debug("resolving name for number "+ ce.get_externalNo());
 					callerName = _pbm.getNameFromNumber(ce.get_externalNo(), 7);
 					if(callerName == null){
 						callerName = "Name not found for "+ce.get_externalNo(); //if no match was found, reset to number
 					}
 					else{
-						logger.info("external number resolved to: "+callerName);
+						logger.debug("external number resolved to: "+callerName);
 					}
 				}
 			}
@@ -318,12 +318,12 @@ public class CallMonitor extends Thread{
 					String configString = conf.getConfigString();
 					String externalInfo = null; //either name or number as requested by item
 					//number name resolving wanted?
-					if(configString.contains("resolveName")){
-						logger.info("name resolving requested in item "+itemName +". Setting external no. to "+callerName);
+					if(configString.startsWith("callmonitor") && configString.contains("resolveName")){
+						logger.debug("name resolving requested in item "+itemName +". Setting external no. to "+callerName);
 						externalInfo = callerName;
 					}
 					else{
-						logger.info("NO name resolving requested in item "+itemName +". Setting external no. to "+ce.get_externalNo());
+						logger.debug("NO name resolving requested in item "+itemName +". Setting external no. to "+ce.get_externalNo());
 						externalInfo = ce.get_externalNo();
 					}
 					if (ce.get_callType().equals("DISCONNECT")) {

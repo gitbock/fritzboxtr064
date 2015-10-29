@@ -245,8 +245,12 @@ public class Tr064Comm {
 	 */
 	
 	public void setTr064Value(String request, Command cmd){
+		//extract itemCommand from request
+		String[] itemConfig = request.split(":");
+		String itemCommand = itemConfig[0]; //command is always first
+		
 		//search for proper item Mapping
-		ItemMap itemMap = determineItemMappingByItemCommand(request); 
+		ItemMap itemMap = determineItemMappingByItemCommand(itemCommand); 
 		
 		//determine which url etc. to connect to for accessing required value
 		Tr064Service tr064service = determineServiceByItemMapping(itemMap);
@@ -258,6 +262,14 @@ public class Tr064Comm {
 			SOAPBody body = msg.getSOAPBody(); //std. SAOP body
 			QName bodyName = new QName(tr064service.get_serviceType(), itemMap.get_writeServiceCommand(), "u"); //header for body element
 			bodyData = body.addBodyElement(bodyName);
+			//only if input parameter is present
+			if(itemConfig.length > 1){
+				String dataInValueAdd = itemConfig[1]; //additional parameter to set e.g. id of TAM to set
+				QName dataNode = new QName(itemMap.get_writeDataInNameAdditional()); //name of additional para to set
+				SOAPElement beDataNode = bodyData.addChildElement(dataNode);
+				beDataNode.addTextNode(dataInValueAdd); //add value which should be set
+			}
+			
 			//convert String command into numeric
 			String setDataInValue = cmd.toString().equalsIgnoreCase("on") ? "1" : "0";
 			QName dataNode = new QName(itemMap.get_writeDataInName()); //service specific node name
@@ -542,7 +554,7 @@ public class Tr064Comm {
 	private void readAllServices(){
 		Document xml = getFboxXmlResponse(_url+"/tr64desc.xml");
 		if(xml == null){
-			logger.error("Could not xml response services");
+			logger.error("Could not read xml response services");
 			return;
 		}
 		NodeList nlServices = xml.getElementsByTagName("service"); //get all service nodes
@@ -672,6 +684,14 @@ public class Tr064Comm {
 		// itemcommand is dummy: not a real item
 		ItemMap imPhonebook = new ItemMap("phonebook", "GetPhonebook", "urn:X_AVM-DE_OnTel-com:serviceId:X_AVM-DE_OnTel1", "NewPhonebookID", "NewPhonebookURL");
 		_alItemMap.add(imPhonebook);
+		
+		//TAM (telephone answering machine) Switch
+		ItemMap imTamSwitch = new ItemMap("tamSwitch", "GetInfo", "urn:X_AVM-DE_TAM-com:serviceId:X_AVM-DE_TAM1", "NewIndex", "NewEnable");
+		imTamSwitch.set_writeServiceCommand("SetEnable");
+		imTamSwitch.set_writeDataInName("NewEnable");
+		imTamSwitch.set_writeDataInNameAdditional("NewIndex"); //additional Parameter to set
+		_alItemMap.add(imTamSwitch);
+		
 	
 	}
 	

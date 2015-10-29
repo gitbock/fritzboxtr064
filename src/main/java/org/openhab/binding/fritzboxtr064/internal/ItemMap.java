@@ -21,16 +21,24 @@ public class ItemMap{
 	
 	// write specific
 	private String _writeServiceCommand; // command to execute on fbox if value should be set
+	private String _writeDataInName;		//name of parameter which is put in soap request when setting an option on fbox
+	private String _writeDataInNameAdditional; //additional Parameter to add to write request. e.g. id of TAM to set
 	
 	
+	
+	public String get_writeDataInNameAdditional() {
+		return _writeDataInNameAdditional;
+	}
+	public void set_writeDataInNameAdditional(String _writeDataInNameAdditional) {
+		this._writeDataInNameAdditional = _writeDataInNameAdditional;
+	}
 	public String get_writeServiceCommand() {
 		return _writeServiceCommand;
 	}
 	public void set_writeServiceCommand(String _writeServiceCommand) {
 		this._writeServiceCommand = _writeServiceCommand;
 	}
-	private String _writeDataInName;		//name of parameter which is put in soap request when setting an option on fbox
-	
+		
 	
 	public String get_writeDataInName() {
 		return _writeDataInName;
