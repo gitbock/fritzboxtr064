@@ -47,6 +47,12 @@ Call    fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]"     {fritzboxtr064="
 
 # resolve numbers to names according phonebook
 Call    fboxIncomingCallResolved   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing:resolveName" } 
+
+# Telephone answering machine (TAM)
+# Number after tamSwitch is ID of configured TAM, start with 0
+Switch  fboxAB	     "Answering machine ID 0"		{fritzboxtr064="tamSwitch:0"}
+
+
 ```
 
 
