@@ -18,7 +18,8 @@ I created a binding for communication with fritzbox using SOAP requests (TR064 p
  * Switch Item: Receives "ON" state when call is incoming
  * Call Items: Shows external an internal number for incoming/outgoing calls
  * Resolve external call number to phonebook name
-* Enabling/disabling telephone answering machines (TAMs) 
+* enabling/disabling telephone answering machines (TAMs) 
+* getting new messages per TAM
 
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
@@ -49,10 +50,10 @@ Call    fboxOutgoingCall    "Outgoing call: [%1$s to %2$s]"     {fritzboxtr064="
 # resolve numbers to names according phonebook
 Call    fboxIncomingCallResolved   	"Incoming call: [%1$s to %2$s]"     {fritzboxtr064="callmonitor_ringing:resolveName" } 
 
-# Telephone answering machine (TAM)
+# Telephone answering machine (TAM) items
 # Number after tamSwitch is ID of configured TAM, start with 0
-Switch  fboxAB	     "Answering machine ID 0"		{fritzboxtr064="tamSwitch:0"}
-
+Switch  fboxTAM0Switch   "Answering machine ID 0"		{fritzboxtr064="tamSwitch:0"}
+Number  fboxTAM0NewMsg   "New Messages TAM 0 [%s]"      {fritzboxtr064="tamNewMessages:0"}
 
 ```
 
