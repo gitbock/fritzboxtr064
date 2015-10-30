@@ -227,7 +227,7 @@ public class Tr064Comm {
 				value = nlDataOutNodes.item(0).getTextContent();
 			}
 			else{
-				logger.error("Fbox returned unexcpected response. Could not find expected datavalue "+itemMap.get_readDataOutName()+" in response "+soapToString(response));
+				logger.error("Fbox returned unexpected response. Could not find expected datavalue "+itemMap.get_readDataOutName()+" in response "+soapToString(response));
 			}
 
 		}
@@ -692,6 +692,59 @@ public class Tr064Comm {
 		imTamSwitch.set_writeDataInNameAdditional("NewIndex"); //additional Parameter to set
 		_alItemMap.add(imTamSwitch);
 		
+		//New Messages per TAM ID
+		// two requests needed: First gets URL to download tam info from, 2nd contains info of messages
+		ItemMap imTamNewMessages = new ItemMap("tamNewMessages", "GetMessageList", "urn:X_AVM-DE_TAM-com:serviceId:X_AVM-DE_TAM1", "NewIndex", "NewURL");
+		//SVP fetches desired infos
+		imTamNewMessages.set_soapValueParser(new SoapValueParser() {
+			
+			@Override
+			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping) {
+				String value = "";
+				logger.debug("Parsing fbox response for TAM messages: "+soapToString(sm));
+				try {
+					SOAPBody sbResponse = sm.getSOAPBody();
+					if(sbResponse.hasFault()){
+						SOAPFault sf = sbResponse.getFault();
+						Detail detail = sf.getDetail();
+						if(detail != null){
+							logger.error("Error received from fbox while parsing TAM message info: "+soapToString(sm));
+							logger.error("SOAP request was:\n"+soapToString(sm));
+							value = "ERROR";
+						}
+					}
+					else{
+						NodeList nlDataOutNodes = sm.getSOAPPart().getElementsByTagName(mapping.get_readDataOutName()); //URL
+						if(nlDataOutNodes != null & nlDataOutNodes.getLength() > 0){
+							//extract URL from soap response
+							String url = nlDataOutNodes.item(0).getTextContent();
+							Document xmlTamInfo = getFboxXmlResponse(url);
+							logger.debug("Parsing xml message TAM info "+Helper.documentToString(xmlTamInfo));
+							NodeList nlNews = xmlTamInfo.getElementsByTagName("New"); //get all Nodes containing "new", indicating message was not listened to
+							
+							//When <new> contains 1 -> message is new, when 0, message not new -> Counting 1s
+							int newMessages = 0;
+							for(int i=0;i<nlNews.getLength();i++){
+								if(nlNews.item(i).getTextContent().equals("1")){
+									newMessages++;
+								}
+							}
+							value = Integer.toString(newMessages);
+							logger.debug("Parsed new messages as: "+value);
+						}
+						else{
+							logger.error("Fbox returned unexpected response. Could not find expected datavalue "+mapping.get_readDataOutName()+" in response "+soapToString(sm));
+						}
+					}
+				} catch (SOAPException e) {
+					logger.error("Error parsing SOAP response from fbox");
+					e.printStackTrace();
+				}
+				
+				return value;
+			}
+		});
+		_alItemMap.add(imTamNewMessages);
 	
 	}
 	
@@ -707,7 +760,6 @@ public class Tr064Comm {
 		try {
 			CloseableHttpResponse resp = _httpClient.execute(httpGet, _httpClientContext);
 			int responseCode = resp.getStatusLine().getStatusCode();
-			logger.debug("Got Raw response from http client: "+resp.toString());
 			if(responseCode == 200){
 				HttpEntity entity = resp.getEntity();
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

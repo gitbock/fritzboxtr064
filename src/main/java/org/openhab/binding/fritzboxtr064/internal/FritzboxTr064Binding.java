@@ -16,8 +16,10 @@ import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.items.ContactItem;
+import org.openhab.core.library.items.NumberItem;
 import org.openhab.core.library.items.StringItem;
 import org.openhab.core.library.items.SwitchItem;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.StringType;
@@ -222,6 +224,19 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 				}
 				if(itemType.isAssignableFrom(SwitchItem.class)){
 					State newState = tr064result.equals("1") ? OnOffType.ON : OnOffType.OFF;
+					eventPublisher.postUpdate(itemName, newState );
+				}
+				if(itemType.isAssignableFrom(NumberItem.class)){ //number items e.g. TAM messages
+					// tr064 retrieveds only Strins, trying to parse value returned
+					int val = 0;
+					try{
+						val = Integer.parseInt(tr064result);
+					}
+					catch(NumberFormatException ex){
+						val = -1; //indicate error as -1
+					}
+					
+					State newState = new DecimalType(val);
 					eventPublisher.postUpdate(itemName, newState );
 				}
 				
