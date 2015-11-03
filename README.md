@@ -20,6 +20,7 @@ I created a binding for communication with fritzbox using SOAP requests (TR064 p
  * Resolve external call number to phonebook name
 * enabling/disabling telephone answering machines (TAMs) 
 * getting new messages per TAM
+* getting missed calls for the last x days
 
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
@@ -54,6 +55,9 @@ Call    fboxIncomingCallResolved   	"Incoming call: [%1$s to %2$s]"     {fritzbo
 # Number after tamSwitch is ID of configured TAM, start with 0
 Switch  fboxTAM0Switch   "Answering machine ID 0"		{fritzboxtr064="tamSwitch:0"}
 Number  fboxTAM0NewMsg   "New Messages TAM 0 [%s]"      {fritzboxtr064="tamNewMessages:0"}
+
+# Missed calls: specify the number of last days which should be searched for missed calls
+Number  fboxMissedCalls     "Missed Calls [%s]"      	{fritzboxtr064="missedCallsInDays:5"}
 
 ```
 
