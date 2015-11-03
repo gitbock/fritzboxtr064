@@ -233,7 +233,7 @@ public class Tr064Comm {
 		}
 		else{
 			logger.debug("Parsing response using SOAP value parser in Item map");
-			value = itemMap.get_soapValueParser().parseValueFromSoapMessage(response, itemMap); //itemMap is passed for accessing mapping in anonymous method (better way to do??)
+			value = itemMap.get_soapValueParser().parseValueFromSoapMessage(response, itemMap, request); //itemMap is passed for accessing mapping in anonymous method (better way to do??)
 		}
 		return value;
 	}
@@ -595,7 +595,7 @@ public class Tr064Comm {
 		imMacOnline.set_soapValueParser(new SoapValueParser() {
 			
 			@Override
-			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping) {
+			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping, String request) {
 				logger.debug("Parsing fbox response for maconline");
 				String value = "";
 				//maconline: if fault is present could also indicate not a fault but MAC is not known
@@ -699,7 +699,7 @@ public class Tr064Comm {
 		imTamNewMessages.set_soapValueParser(new SoapValueParser() {
 			
 			@Override
-			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping) {
+			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping, String request) {
 				String value = "";
 				logger.debug("Parsing fbox response for TAM messages: "+soapToString(sm));
 				try {
@@ -745,6 +745,72 @@ public class Tr064Comm {
 			}
 		});
 		_alItemMap.add(imTamNewMessages);
+		
+		
+		//Missed calls
+		//two requests: 1st fetches URL to download call list, 2nd fetches xml call list
+		ItemMap imMissedCalls = new ItemMap("missedCallsInDays", "GetCallList", "urn:X_AVM-DE_OnTel-com:serviceId:X_AVM-DE_OnTel1", "", "NewCallListURL");
+		//svp for downloading call list from received URL
+		imMissedCalls.set_soapValueParser(new SoapValueParser() {
+			
+			@Override
+			public String parseValueFromSoapMessage(SOAPMessage sm, ItemMap mapping, String request) {
+				String value = "";
+				logger.debug("Parsing fbox response for call list: "+soapToString(sm));
+				
+				//extract how many days of call list should be examined for missed calls
+				String days = "3"; //default
+				String[] itemConfig = request.split(":");
+				if(itemConfig.length == 2){
+					days = itemConfig[1]; //set the days as defined in item config. Otherwise default value of 3 is used
+				}
+				
+				try {
+					SOAPBody sbResponse = sm.getSOAPBody();
+					if(sbResponse.hasFault()){
+						SOAPFault sf = sbResponse.getFault();
+						Detail detail = sf.getDetail();
+						if(detail != null){
+							logger.error("Error received from fbox while parsing call list: "+soapToString(sm));
+							logger.error("SOAP request was:\n"+soapToString(sm));
+							value = "ERROR";
+						}
+					}
+					else{
+						NodeList nlDataOutNodes = sm.getSOAPPart().getElementsByTagName(mapping.get_readDataOutName()); //URL
+						if(nlDataOutNodes != null & nlDataOutNodes.getLength() > 0){
+							//extract URL from soap response
+							String url = nlDataOutNodes.item(0).getTextContent();
+							// only get missed calls of the last x days
+							url = url + "&days="+days;
+							logger.debug("Downloading call list using url "+url);
+							Document xmlTamInfo = getFboxXmlResponse(url); //download call list
+							logger.debug("Parsing xml message call list info "+Helper.documentToString(xmlTamInfo));
+							NodeList nlTypes = xmlTamInfo.getElementsByTagName("Type"); //get all Nodes containing "Type". Type 2 => missed
+							
+							//When <type> contains 2 -> call was missed -> Counting only 2 entries
+							int missedCalls = 0;
+							for(int i=0;i<nlTypes.getLength();i++){
+								if(nlTypes.item(i).getTextContent().equals("2")){
+									missedCalls++;
+								}
+							}
+							value = Integer.toString(missedCalls);
+							logger.debug("Parsed new messages as: "+value);
+						}
+						else{
+							logger.error("Fbox returned unexpected response. Could not find expected datavalue "+mapping.get_readDataOutName()+" in response "+soapToString(sm));
+						}
+					}
+				} catch (SOAPException e) {
+					logger.error("Error parsing SOAP response from fbox");
+					e.printStackTrace();
+				}
+				
+				return value;
+			}
+		});
+		_alItemMap.add(imMissedCalls);
 	
 	}
 	

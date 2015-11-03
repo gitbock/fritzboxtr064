@@ -186,7 +186,6 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	protected void execute() {
 		logger.debug("FritzboxTr064 executing...");
 		
-		
 		for (FritzboxTr064BindingProvider provider : providers) { 
 			for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding
 				FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); // extract itemconfig for current item
@@ -200,7 +199,6 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 							_pbm = new PhonebookManager(_fboxComm);
 							_pbm.downloadPhonebooks();
 						}
-						
 						
 						_callMonitor = new CallMonitor(_url, eventPublisher, providers, _pbm);
 						_callMonitor.setupReconnectJob();
