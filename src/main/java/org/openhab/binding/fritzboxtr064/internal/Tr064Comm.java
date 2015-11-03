@@ -749,7 +749,7 @@ public class Tr064Comm {
 		
 		//Missed calls
 		//two requests: 1st fetches URL to download call list, 2nd fetches xml call list
-		ItemMap imMissedCalls = new ItemMap("missedCallsInDays", "GetCallList", "urn:X_AVM-DE_OnTel-com:serviceId:X_AVM-DE_OnTel1", "", "NewCallListURL");
+		ItemMap imMissedCalls = new ItemMap("missedCallsInDays", "GetCallList", "urn:X_AVM-DE_OnTel-com:serviceId:X_AVM-DE_OnTel1", "NewDays", "NewCallListURL");
 		//svp for downloading call list from received URL
 		imMissedCalls.set_soapValueParser(new SoapValueParser() {
 			
