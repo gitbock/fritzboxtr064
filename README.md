@@ -22,6 +22,10 @@ I created a binding for communication with fritzbox using SOAP requests (TR064 p
 * getting new messages per TAM
 * getting missed calls for the last x days
 
+**Prerequisites**
+
+Java JRE 1.8.0+ (version 1.7 / openJDK7 is not working)
+
 ## Download
 Go to [releases] (https://github.com/gitbock/fritzboxtr064/releases) on the top and download the desired *.jar file.
 
