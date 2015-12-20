@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2015, openHAB.org and others.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.fritzboxtr064.internal;
 
 import static org.quartz.JobBuilder.newJob;
@@ -38,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * Wrapper class which handles all data/comm. when call monitoing is used
  * Thread control class
  * @author gitbock
- *
+ * @since 1.8.0
  */
 public class CallMonitor extends Thread{
 	
@@ -98,7 +106,7 @@ public class CallMonitor extends Thread{
 			ip = m.group(2);
 		}
 		else{
-			logger.error("Cannot get IP from FritzBox URL: "+url);
+			logger.error("Cannot get IP from FritzBox URL:  {}",url);
 		}
 		return ip;
 	}
@@ -133,7 +141,7 @@ public class CallMonitor extends Thread{
                         .build();
 
                 sched.scheduleJob(job, trigger);
-                logger.debug("Scheduled reconnection job to FritzBox: "+cronPattern);
+                logger.debug("Scheduled reconnection job to FritzBox: {}",cronPattern);
             }
 		} catch (SchedulerException e) {
 			logger.warn("Could not create daily reconnection job", e);
@@ -154,7 +162,7 @@ public class CallMonitor extends Thread{
 		    }
 		
 		} catch (SchedulerException e) {
-			logger.warn("Error shutting down reconnect job: "+e.getLocalizedMessage());
+			logger.warn("Error shutting down reconnect job: {}",e.getLocalizedMessage());
 		}
 	}
 
@@ -214,18 +222,18 @@ public class CallMonitor extends Thread{
 		
 		@Override
 		public void run() {
-			logger.debug("Callmonitor Thread ["+ Thread.currentThread().getId() +"] is interrupted: "+_interrupted);
+			logger.debug("Callmonitor Thread [{}] is interrupted: {}", Thread.currentThread().getId(),_interrupted);
 			while (!_interrupted) {
 				if (_ip != null) {
 					BufferedReader reader = null;
 					try {
-						logger.info("Callmonitor Thread ["+Thread.currentThread().getId()+"] attempting connection to FritzBox on {}:{}...", _ip, _port);
+						logger.info("Callmonitor Thread [{}] attempting connection to FritzBox on {}:{}..",Thread.currentThread().getId(),_ip, _port);
 						_socket = new Socket(_ip, _port);
 						reader = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
 						// reset the retry interval
 						_reconnectTime = 60000L;
 					} catch (Exception e) {
-						logger.warn("Error attempting to connect to FritzBox. Retrying in " + _reconnectTime / 1000L + "s.", e);
+						logger.warn("Error attempting to connect to FritzBox. Retrying in {}s", _reconnectTime / 1000L, e);
 						try {
 							Thread.sleep(_reconnectTime);
 						} catch (InterruptedException ex) {
@@ -240,7 +248,7 @@ public class CallMonitor extends Thread{
 							try {
 								String line = reader.readLine();
 								if (line != null) {
-									logger.debug("Received raw call string from fbox: "+line);
+									logger.debug("Received raw call string from fbox: {}",line);
 									CallEvent ce = new CallEvent(line);
 									if(ce.parseRawEvent()){
 										handleCallEvent(ce);
@@ -292,24 +300,24 @@ public class CallMonitor extends Thread{
 			String callerName = "";
 			if(_pbm != null){
 				//resolving caller name if external number is present in call event
-				if(ce.get_externalNo() == null || ce.get_externalNo().isEmpty()){
+				if(ce.getExternalNo() == null || ce.getExternalNo().isEmpty()){
 					 logger.debug("no external number provided by fbox. Will not resolve name");
 				}
 				else{
-					logger.debug("resolving name for number "+ ce.get_externalNo());
-					callerName = _pbm.getNameFromNumber(ce.get_externalNo(), 7);
+					logger.debug("resolving name for number {}", ce.getExternalNo());
+					callerName = _pbm.getNameFromNumber(ce.getExternalNo(), 7);
 					if(callerName == null){
-						callerName = "Name not found for "+ce.get_externalNo(); //if no match was found, reset to number
+						callerName = "Name not found for "+ce.getExternalNo(); //if no match was found, reset to number
 					}
 					else{
-						logger.debug("external number resolved to: "+callerName);
+						logger.debug("external number resolved to: {}",callerName);
 					}
 				}
 			}
 			
 			
 			//cycle through all items
-			logger.debug("Searching item to pass call event: "+ce.get_callType());
+			logger.debug("Searching item to pass call event: {}",ce.getCallType());
 			for (FritzboxTr064BindingProvider provider : _providers) { 
 				for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding		
 					FritzboxTr064BindingConfig conf = provider.getBindingConfigByItemName(itemName); //config object for item
@@ -319,45 +327,45 @@ public class CallMonitor extends Thread{
 					String externalInfo = null; //either name or number as requested by item
 					//number name resolving wanted?
 					if(configString.startsWith("callmonitor") && configString.contains("resolveName")){
-						logger.debug("name resolving requested in item "+itemName +". Setting external no. to "+callerName);
+						logger.debug("name resolving requested in item {}. Setting external no. to",itemName,callerName);
 						externalInfo = callerName;
 					}
 					else{
-						logger.debug("NO name resolving requested in item "+itemName +". Setting external no. to "+ce.get_externalNo());
-						externalInfo = ce.get_externalNo();
+						logger.debug("NO name resolving requested in item {}. Setting external no. to",itemName,callerName);
+						externalInfo = ce.getExternalNo();
 					}
-					if (ce.get_callType().equals("DISCONNECT")) {
+					if (ce.getCallType().equals("DISCONNECT")) {
 						//1.12.05⌴12:00:10;DISCONNECT;0;5;
 						//reset states of callmonitor items to 0 for ALL items regardless of type
 						if(configString.startsWith("callmonitor_ringing") || configString.startsWith("callmonitor_active") || configString.startsWith("callmonitor_outgoing")){
 							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.OFF : CallType.EMPTY;
 						}
 					}
-					else if (ce.get_callType().equals("RING")) { //first event when call is incoming
+					else if (ce.getCallType().equals("RING")) { //first event when call is incoming
 						//1.12.05⌴12:00:15;RING;0;5551234;5556789;SIP0;
 						if(configString.startsWith("callmonitor_ringing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.get_internalNo(), externalInfo );
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(ce.getInternalNo(), externalInfo );
 						}
 					}
-					else if (ce.get_callType().equals("CONNECT")){ //when call is answered/running
+					else if (ce.getCallType().equals("CONNECT")){ //when call is answered/running
 						//1.12.05⌴12:00:05;CONNECT;0;0;0180537489269;
 						if(configString.startsWith("callmonitor_active")){ // only for "active" items
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.get_internalNo());
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.getInternalNo());
 						}
 					}
-					else if (ce.get_callType().equals("CALL")){ //outgoing call
+					else if (ce.getCallType().equals("CALL")){ //outgoing call
 						//1.12.05⌴12:00:00;CALL;0;0;5557890;0180537489269;ISDN;
 						if(configString.startsWith("callmonitor_outgoing")){
-							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.get_internalNo() );
+							state = itemType.isAssignableFrom(SwitchItem.class) ? OnOffType.ON : new CallType(externalInfo, ce.getInternalNo() );
 						}
 					}
 					
 					if (state != null) {
-						logger.debug("Dispatching call type "+ ce.get_callType() +" to item " + itemName + " as "+state.toString());
+						logger.debug("Dispatching call type {} to item {} as {}", ce.getCallType(),itemName,state.toString());
 						_eventPublisher.postUpdate(itemName, state);
 					}
 					else{
-						logger.debug("Could not determine state for item " + itemName+ ". Not relevant?");
+						logger.debug("Could not determine state for item {}. Not relevant!", itemName);
 					}
 				}
 			}

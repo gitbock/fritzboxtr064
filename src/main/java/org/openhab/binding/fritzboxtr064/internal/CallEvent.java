@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2015, openHAB.org and others.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.fritzboxtr064.internal;
 
 import org.slf4j.Logger;
@@ -13,6 +21,7 @@ import org.slf4j.LoggerFactory;
  *  12.10.15 20:24:24;DISCONNECT;0;0;
  * 
  * @author gitbock
+ * @since 1.8.0
  *
  */
 public class CallEvent {
@@ -34,56 +43,56 @@ public class CallEvent {
 	}
 	
 	
-	public String get_line() {
+	public String getLine() {
 		return _line;
 	}
 
 
-	public void set_line(String _line) {
+	public void setLine(String _line) {
 		this._line = _line;
 	}
 
 
-	public String get_timestamp() {
+	public String getTimestamp() {
 		return _timestamp;
 	}
-	public void set_timestamp(String _timestamp) {
+	public void setTimestamp(String _timestamp) {
 		this._timestamp = _timestamp;
 	}
-	public String get_callType() {
+	public String getCallType() {
 		return _callType;
 	}
-	public void set_callType(String _callType) {
+	public void setCallType(String _callType) {
 		this._callType = _callType;
 	}
-	public String get_id() {
+	public String getId() {
 		return _id;
 	}
-	public void set_id(String _id) {
+	public void setId(String _id) {
 		this._id = _id;
 	}
-	public String get_externalNo() {
+	public String getExternalNo() {
 		return _externalNo;
 	}
-	public void set_externalNo(String _externalNo) {
+	public void setExternalNo(String _externalNo) {
 		this._externalNo = _externalNo;
 	}
-	public String get_internalNo() {
+	public String getInternalNo() {
 		return _internalNo;
 	}
-	public void set_internalNo(String _internalNo) {
+	public void setInternalNo(String _internalNo) {
 		this._internalNo = _internalNo;
 	}
-	public String get_connectionType() {
+	public String getConnectionType() {
 		return _connectionType;
 	}
-	public void set_connectionType(String _connectionType) {
+	public void setConnectionType(String _connectionType) {
 		this._connectionType = _connectionType;
 	}
-	public String get_raw() {
+	public String getRaw() {
 		return _raw;
 	}
-	public void set_raw(String _raw) {
+	public void setRaw(String _raw) {
 		this._raw = _raw;
 	}
 	
@@ -99,7 +108,7 @@ public class CallEvent {
 		}
 		String[] fields = _raw.split(";");
 		if(fields.length < 4){
-			logger.error("Cannot parse call event. Unexpected line received "+_raw);
+			logger.error("Cannot parse call event. Unexpected line received {}",_raw);
 			return false;
 		}
 		this._timestamp = fields[0];
@@ -118,7 +127,7 @@ public class CallEvent {
 			this._externalNo = fields[5];
 			this._connectionType = fields[6];
 		}
-		logger.debug("Successfully parsed Call Event: "+this.toString());
+		logger.debug("Successfully parsed Call Event: {}",this.toString());
 		return true;
 	}
 

@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * like querying a Website/Device.
  * 
  * @author gitbock
- * @since 0.1.0
+ * @since 1.8.0
  */
 public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064BindingProvider> {
 
@@ -99,16 +99,16 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		String fboxuser = (String) configuration.get("user");
 		String fboxpw = (String) configuration.get("pass");
 		if(fboxurl == null){
-			logger.error("Fritzbox URL was not provided in config. Shutting down binding.");
+			logger.warn("Fritzbox URL was not provided in config. Shutting down binding.");
 			//how to shutdown??
 			setProperlyConfigured(false);
 			return;
 		}
 		if(fboxuser == null){
-			logger.error("Fritzbox User was not provided in config. Using default username.");
+			logger.warn("Fritzbox User was not provided in config. Using default username.");
 		}
 		if(fboxpw == null){
-			logger.error("Fritzbox Password was not provided in config. Shutting down binding.");
+			logger.warn("Fritzbox Password was not provided in config. Shutting down binding.");
 			//how to shutdown??
 			setProperlyConfigured(false);
 			return;
@@ -129,39 +129,8 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		
 		
 	}
-	
-	/**
-	 * Called by the SCR when the configuration of a binding has been changed through the ConfigAdmin service.
-	 * @param configuration Updated configuration properties
-	 */
-	public void modified(final Map<String, Object> configuration) {
-
-	}
-	
-	/**
-	 * Called by the SCR to deactivate the component when either the configuration is removed or
-	 * mandatory references are no longer satisfied or the component has simply been stopped.
-	 * @param reason Reason code for the deactivation:<br>
-	 * <ul>
-	 * <li> 0 – Unspecified
-     * <li> 1 – The component was disabled
-     * <li> 2 – A reference became unsatisfied
-     * <li> 3 – A configuration was changed
-     * <li> 4 – A configuration was deleted
-     * <li> 5 – The component was disposed
-     * <li> 6 – The bundle was stopped
-     * </ul>
-	 */
-	public void deactivate(final int reason) {
-		this.bundleContext = null;
 		
-		if(this._callMonitor != null){
-			this._callMonitor.shutdownReconnectJob();
-			this._callMonitor.stopThread();
-			this._callMonitor = null;
-		}
-	}
-
+	
 	
 	/**
 	 * @{inheritDoc}
@@ -184,7 +153,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	 */
 	@Override
 	protected void execute() {
-		logger.debug("FritzboxTr064 executing...");
+		logger.trace("FritzboxTr064 executing...");
 		
 		for (FritzboxTr064BindingProvider provider : providers) { 
 			for(String itemName : provider.getItemNames() ){ //check each item relevant for this binding
@@ -216,16 +185,16 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 				if(itemType.isAssignableFrom(StringItem.class)){
 					eventPublisher.postUpdate(itemName, new StringType(tr064result));
 				}
-				if(itemType.isAssignableFrom(ContactItem.class)){
+				else if(itemType.isAssignableFrom(ContactItem.class)){
 					State newState = tr064result.equals("1") ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
 					eventPublisher.postUpdate(itemName, newState );
 				}
-				if(itemType.isAssignableFrom(SwitchItem.class)){
+				else if(itemType.isAssignableFrom(SwitchItem.class)){
 					State newState = tr064result.equals("1") ? OnOffType.ON : OnOffType.OFF;
 					eventPublisher.postUpdate(itemName, newState );
 				}
-				if(itemType.isAssignableFrom(NumberItem.class)){ //number items e.g. TAM messages
-					// tr064 retrieveds only Strins, trying to parse value returned
+				else if(itemType.isAssignableFrom(NumberItem.class)){ //number items e.g. TAM messages
+					// tr064 retrieves only Strings, trying to parse value returned
 					int val = 0;
 					try{
 						val = Integer.parseInt(tr064result);
@@ -251,7 +220,7 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 	 */
 	@Override
 	protected void internalReceiveCommand(String itemName, Command command) {
-		logger.debug("internalReceiveCommand({},{}) is called!", itemName, command);
+		logger.trace("internalReceiveCommand({},{}) is called!", itemName, command);
 		if(_fboxComm == null){
 			_fboxComm = new Tr064Comm(_url, _user, _pw);
 		}
@@ -264,15 +233,6 @@ public class FritzboxTr064Binding extends AbstractActiveBinding<FritzboxTr064Bin
 		}
 	}
 	
-	/**
-	 * @{inheritDoc}
-	 */
-	@Override
-	protected void internalReceiveUpdate(String itemName, State newState) {
-		// the code being executed when a state was sent on the openHAB
-		// event bus goes here. This method is only called if one of the 
-		// BindingProviders provide a binding for the given 'itemName'.
-		logger.debug("internalReceiveUpdate({},{}) is called! NOT IMPLEMENTED yet", itemName, newState);
-	}
+	
 	
 }

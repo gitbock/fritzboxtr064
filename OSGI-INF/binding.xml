@@ -9,7 +9,7 @@
     http://www.eclipse.org/legal/epl-v10.html
 
 -->
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.2.0" activate="activate" modified="modified" deactivate="deactivate" name="org.openhab.binding.fritzboxtr064.binding" immediate="true" configuration-pid="org.openhab.fritzboxtr064" configuration-policy="require">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.2.0" activate="activate" name="org.openhab.binding.fritzboxtr064.binding" immediate="true" configuration-pid="org.openhab.fritzboxtr064" configuration-policy="require">
 	<implementation class="org.openhab.binding.fritzboxtr064.internal.FritzboxTr064Binding" />
 
 	<service>

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * This class is responsible for parsing the binding configuration.
  * 
  * @author gitbock
- * @since 0.1.0
+ * @since 1.8.0
  */
 public class FritzboxTr064GenericBindingProvider extends AbstractGenericBindingProvider implements FritzboxTr064BindingProvider {
 	
@@ -67,7 +67,7 @@ public class FritzboxTr064GenericBindingProvider extends AbstractGenericBindingP
 		FritzboxTr064BindingConfig config = new FritzboxTr064BindingConfig(item.getClass(), bindingConfig);
 		
 		addBindingConfig(item, config);
-		logger.debug("Adding item "+item.getName() + " with config " +config.getConfigString());
+		logger.debug("Adding item {} with config {}", item.getName(),config.getConfigString());
 	}
 	
 	

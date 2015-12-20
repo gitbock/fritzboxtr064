@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2015, openHAB.org and others.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.fritzboxtr064.internal;
 
 import java.io.ByteArrayOutputStream;
@@ -26,6 +34,7 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
  * Class managing all Phonebook related work	
  * 
  * @author gitbock
+ * @since 1.8.0
  *
  */
 public class PhonebookManager {
@@ -56,7 +65,7 @@ public class PhonebookManager {
 	 * @return found name or null
 	 */
 	public String getNameFromNumber(String number, int compareCount){
-		logger.info("Trying to resolve number " +number + " to name, comparing "+ compareCount+ " characters");
+		logger.info("Trying to resolve number {} to name comparing {} characters",number,compareCount);
 		String name = null;
 		Iterator<PhoneBookEntry> it = _alEntries.iterator();
 		while(it.hasNext()){
@@ -66,7 +75,7 @@ public class PhonebookManager {
 			String numberToCompare = "";
 			
 			//WORK number
-			StringBuilder sbPhonebookNumber = new StringBuilder(pbe.get_businessTel());
+			StringBuilder sbPhonebookNumber = new StringBuilder(pbe.getBusinessTel());
 			sbPhonebookNumber.reverse();
 			//check if comparing numbers are within entire string range
 			if(compareCount <= sbAskNumber.length()){
@@ -76,13 +85,13 @@ public class PhonebookManager {
 				numberToCompare = sbAskNumber.substring(0, sbAskNumber.length());
 			}
 			if(sbPhonebookNumber.toString().startsWith(numberToCompare)){
-				logger.info("found name match "+pbe.get_name()+" in phonebook by comparing "+sbPhonebookNumber.toString()+ " with " + numberToCompare);
-				name = pbe.get_name() + " (Work)";
+				logger.info("found name match {} in phonebook by comparing {} with {} ",pbe.getName(),sbPhonebookNumber.toString(),numberToCompare);
+				name = pbe.getName() + " (Work)";
 				break; //no need to cycle through rest of phonebook
 			}
 			
 			//HOME number
-			sbPhonebookNumber = new StringBuilder(pbe.get_privateTel());
+			sbPhonebookNumber = new StringBuilder(pbe.getPrivateTel());
 			sbPhonebookNumber.reverse();
 			//check if comparing numbers are within entire string range
 			if(compareCount <= sbAskNumber.length()){
@@ -92,13 +101,13 @@ public class PhonebookManager {
 				numberToCompare = sbAskNumber.substring(0, sbAskNumber.length());
 			}
 			if(sbPhonebookNumber.toString().startsWith(numberToCompare)){
-				logger.info("found name match "+pbe.get_name()+" in phonebook by comparing "+sbPhonebookNumber.toString()+ " with " + numberToCompare);
-				name = pbe.get_name() + " (Home)";
+				logger.info("found name match {} in phonebook by comparing {} with {} ",pbe.getName(),sbPhonebookNumber.toString(),numberToCompare);
+				name = pbe.getName() + " (Home)";
 				break; //no need to cycle through rest of phonebook
 			}
 			
 			//MOBILE number
-			sbPhonebookNumber = new StringBuilder(pbe.get_mobileTel());
+			sbPhonebookNumber = new StringBuilder(pbe.getMobileTel());
 			sbPhonebookNumber.reverse();
 			//check if comparing numbers are within entire string range
 			if(compareCount <= sbAskNumber.length()){
@@ -108,8 +117,8 @@ public class PhonebookManager {
 				numberToCompare = sbAskNumber.substring(0, sbAskNumber.length());
 			}
 			if(sbPhonebookNumber.toString().startsWith(numberToCompare)){
-				logger.info("found name match "+pbe.get_name()+" in phonebook by comparing "+sbPhonebookNumber.toString()+ " with " + numberToCompare);
-				name = pbe.get_name() + " (Mobile)";
+				logger.info("found name match {} in phonebook by comparing {} with {} ",pbe.getName(),sbPhonebookNumber.toString(),numberToCompare);
+				name = pbe.getName() + " (Mobile)";
 				break; //no need to cycle through rest of phonebook
 			}
 		}
@@ -125,7 +134,7 @@ public class PhonebookManager {
 	 * @return XML Document downloaded
 	 */
 	public Document downloadPhonebook(int id){
-		logger.info("Downloading phonebook ID "+id);
+		logger.info("Downloading phonebook ID {}",id);
 		String phoneBookUrl = _tr064comm.getTr064Value("phonebook:"+id);
 		Document phoneBook = _tr064comm.getFboxXmlResponse(phoneBookUrl);
 		logger.debug("Downloaded Phonebook:");
@@ -150,7 +159,7 @@ public class PhonebookManager {
 					_alEntries.add(pbe);
 				}
 				else{
-					logger.warn("could not parse phonebook entry: "+nContact.toString());
+					logger.warn("could not parse phonebook entry: {}",nContact.toString());
 				}
 			}
 		}

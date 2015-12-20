@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2015, openHAB.org and others.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.fritzboxtr064.internal;
 
 /***
@@ -26,31 +34,31 @@ public class ItemMap{
 	
 	
 	
-	public String get_writeDataInNameAdditional() {
+	public String getWriteDataInNameAdditional() {
 		return _writeDataInNameAdditional;
 	}
-	public void set_writeDataInNameAdditional(String _writeDataInNameAdditional) {
+	public void setWriteDataInNameAdditional(String _writeDataInNameAdditional) {
 		this._writeDataInNameAdditional = _writeDataInNameAdditional;
 	}
-	public String get_writeServiceCommand() {
+	public String getWriteServiceCommand() {
 		return _writeServiceCommand;
 	}
-	public void set_writeServiceCommand(String _writeServiceCommand) {
+	public void setWriteServiceCommand(String _writeServiceCommand) {
 		this._writeServiceCommand = _writeServiceCommand;
 	}
 		
 	
-	public String get_writeDataInName() {
+	public String getWriteDataInName() {
 		return _writeDataInName;
 	}
-	public void set_writeDataInName(String _setDataInName) {
+	public void setWriteDataInName(String _setDataInName) {
 		this._writeDataInName = _setDataInName;
 	}
 	
-	public SoapValueParser get_soapValueParser() {
+	public SoapValueParser getSoapValueParser() {
 		return _soapValueParser;
 	}
-	public void set_soapValueParser(SoapValueParser _svp) {
+	public void setSoapValueParser(SoapValueParser _svp) {
 		this._soapValueParser = _svp;
 	}
 	
@@ -62,34 +70,34 @@ public class ItemMap{
 		this._readDataInName = _getDataInName1;
 		this._readDataOutName = _getDataOutName1;
 	}
-	public String get_itemCommand() {
+	public String getItemCommand() {
 		return _itemCommand;
 	}
-	public void set_itemCommand(String _itemCommand) {
+	public void setItemCommand(String _itemCommand) {
 		this._itemCommand = _itemCommand;
 	}
-	public String get_readServiceCommand() {
+	public String getReadServiceCommand() {
 		return _readServiceCommand;
 	}
-	public void set_readServiceCommand(String _serviceCommand) {
+	public void setReadServiceCommand(String _serviceCommand) {
 		this._readServiceCommand = _serviceCommand;
 	}
-	public String get_serviceId() {
+	public String getServiceId() {
 		return _serviceId;
 	}
-	public void set_serviceId(String _serviceId) {
+	public void setServiceId(String _serviceId) {
 		this._serviceId = _serviceId;
 	}
-	public String get_readDataInName() {
+	public String getReadDataInName() {
 		return _readDataInName;
 	}
-	public void set_readDataInName1(String _dataInName1) {
+	public void setReadDataInName1(String _dataInName1) {
 		this._readDataInName = _dataInName1;
 	}
-	public String get_readDataOutName() {
+	public String getReadDataOutName() {
 		return _readDataOutName;
 	}
-	public void set_readDataOutName(String _dataOutName1) {
+	public void setReadDataOutName(String _dataOutName1) {
 		this._readDataOutName = _dataOutName1;
 	}
 	@Override

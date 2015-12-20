@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2010-2015, openHAB.org and others.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.openhab.binding.fritzboxtr064.internal;
 
 import javax.xml.xpath.XPath;
@@ -64,7 +72,7 @@ public class PhoneBookEntry {
 			success = true;
 		}
 		else{
-			logger.warn("Could not parse phone book entry: "+Helper.nodeToString(xmlNode));
+			logger.warn("Could not parse phone book entry: {}",Helper.nodeToString(xmlNode));
 		}
 		return success;
 	}
@@ -72,59 +80,59 @@ public class PhoneBookEntry {
 	
 
 
-	public String get_privateTel() {
+	public String getPrivateTel() {
 		return _privateTel;
 	}
 
-	public void set_privateTel(String _privateTel) {
+	public void setPrivateTel(String _privateTel) {
 		this._privateTel = _privateTel;
 	}
 
-	public String get_businessTel() {
+	public String getBusinessTel() {
 		return _businessTel;
 	}
 
-	public void set_businessTel(String _businessTel) {
+	public void setBusinessTel(String _businessTel) {
 		this._businessTel = _businessTel;
 	}
 
-	public String get_mobileTel() {
+	public String getMobileTel() {
 		return _mobileTel;
 	}
 
-	public void set_mobileTel(String _mobileTel) {
+	public void setMobileTel(String _mobileTel) {
 		this._mobileTel = _mobileTel;
 	}
 
-	public String get_fax() {
+	public String getFax() {
 		return _fax;
 	}
 
-	public void set_fax(String _fax) {
+	public void setFax(String _fax) {
 		this._fax = _fax;
 	}
 
-	public String get_phoneBookName() {
+	public String getPhoneBookName() {
 		return _phoneBookName;
 	}
 
-	public void set_phoneBookName(String _phoneBookName) {
+	public void setPhoneBookName(String _phoneBookName) {
 		this._phoneBookName = _phoneBookName;
 	}
 
-	public String get_name() {
+	public String getName() {
 		return _name;
 	}
 
-	public void set_name(String _name) {
+	public void setName(String _name) {
 		this._name = _name;
 	}
 
-	public String get_id() {
+	public String getId() {
 		return _uniqueid;
 	}
 
-	public void set_id(String _id) {
+	public void setId(String _id) {
 		this._uniqueid = _id;
 	}
 	
