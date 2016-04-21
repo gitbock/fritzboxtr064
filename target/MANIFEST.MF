@@ -1,0 +1,28 @@
+Manifest-Version: 1.0
+Bundle-Description: This is the FritzboxTr064 binding of the open Home
+  Automation Bus (openHAB)
+Bundle-License: http://www.eclipse.org/legal/epl-v10.html
+Bundle-SymbolicName: org.openhab.binding.fritzboxtr064
+Bundle-ManifestVersion: 2
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-Vendor: openHAB.org
+Bundle-DocURL: http://www.openhab.org
+Import-Package: javax.net.ssl,org.apache.commons.httpclient.params;ver
+ sion="3.1.0",org.apache.commons.lang,org.openhab.core.binding,org.ope
+ nhab.core.events,org.openhab.core.items,org.openhab.core.library.item
+ s,org.openhab.core.library.types,org.openhab.core.types,org.openhab.l
+ ibrary.tel.types,org.openhab.model.item.binding,org.osgi.framework,or
+ g.osgi.service.component,org.osgi.service.event,org.quartz,org.quartz
+ .impl,org.slf4j
+Service-Component: OSGI-INF/binding.xml, OSGI-INF/genericbindingprovid
+ er.xml
+Export-Package: org.openhab.binding.fritzboxtr064
+Bundle-Name: openHAB FritzboxTr064 Binding
+Bundle-Version: 1.9.0.201604211943
+Bundle-ClassPath: lib/httpclient-4.4.1.jar,lib/httpcore-4.4.1.jar,lib/
+ commons-codec-1.9.jar,lib/commons-logging-1.2.jar,lib/fluent-hc-4.4.1
+ .jar,lib/httpclient-cache-4.4.1.jar,lib/httpclient-win-4.4.1.jar,lib/
+ httpmime-4.4.1.jar,lib/jna-4.1.0.jar,lib/jna-platform-4.1.0.jar,.
+Private-Package: org.openhab.binding.fritzboxtr064.internal
+Ignore-Package: org.openhab.binding.fritzboxtr064.internal
+

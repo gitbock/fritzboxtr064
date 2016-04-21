@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?artifactRepository version='1.1.0'?>
+<artifacts size='1'>
+  <artifact classifier='osgi.bundle' id='org.openhab.binding.fritzboxtr064' version='1.9.0.201604211943'>
+    <properties size='5'>
+      <property name='artifact.size' value='6735710'/>
+      <property name='download.size' value='6735710'/>
+      <property name='maven-groupId' value='org.openhab.binding'/>
+      <property name='maven-artifactId' value='org.openhab.binding.fritzboxtr064'/>
+      <property name='maven-version' value='1.9.0-SNAPSHOT'/>
+    </properties>
+  </artifact>
+</artifacts>
