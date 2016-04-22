@@ -865,6 +865,7 @@ public class Tr064Comm {
     public Document getFboxXmlResponse(String url) {
         Document tr064response = null;
         HttpGet httpGet = new HttpGet(url);
+        boolean exceptionOccurred = false;
         try {
             CloseableHttpResponse resp = _httpClient.execute(httpGet, _httpClientContext);
             int responseCode = resp.getStatusLine().getStatusCode();
@@ -879,8 +880,16 @@ public class Tr064Comm {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("Failed to receive valid response from httpGet");
+            exceptionOccurred = true;
+            logger.error("Failed to receive valid response from httpGet: {}", e.getMessage());
+        } finally {
+            // Make sure connection is released. If error occurred make sure to print in log
+            if (exceptionOccurred) {
+                logger.error("Releasing connection to FritzBox because of error!");
+            } else {
+                logger.debug("Releasing connection");
+            }
+            httpGet.releaseConnection();
         }
         return tr064response;
     }

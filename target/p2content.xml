@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <units size='1'>
-  <unit id='org.openhab.binding.fritzboxtr064' version='1.9.0.201604211943' singleton='false'>
-    <update id='org.openhab.binding.fritzboxtr064' range='[0.0.0,1.9.0.201604211943)' severity='0'/>
+  <unit id='org.openhab.binding.fritzboxtr064' version='1.9.0.201604221915' singleton='false'>
+    <update id='org.openhab.binding.fritzboxtr064' range='[0.0.0,1.9.0.201604221915)' severity='0'/>
     <properties size='7'>
       <property name='org.eclipse.equinox.p2.name' value='openHAB FritzboxTr064 Binding'/>
       <property name='org.eclipse.equinox.p2.description' value='This is the FritzboxTr064 binding of the open Home Automation Bus (openHAB)'/>
@@ -12,8 +12,8 @@
       <property name='maven-version' value='1.9.0-SNAPSHOT'/>
     </properties>
     <provides size='4'>
-      <provided namespace='org.eclipse.equinox.p2.iu' name='org.openhab.binding.fritzboxtr064' version='1.9.0.201604211943'/>
-      <provided namespace='osgi.bundle' name='org.openhab.binding.fritzboxtr064' version='1.9.0.201604211943'/>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='org.openhab.binding.fritzboxtr064' version='1.9.0.201604221915'/>
+      <provided namespace='osgi.bundle' name='org.openhab.binding.fritzboxtr064' version='1.9.0.201604221915'/>
       <provided namespace='java.package' name='org.openhab.binding.fritzboxtr064' version='0.0.0'/>
       <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
     </provides>
@@ -37,13 +37,13 @@
       <required namespace='java.package' name='org.slf4j' range='0.0.0'/>
     </requires>
     <artifacts size='1'>
-      <artifact classifier='osgi.bundle' id='org.openhab.binding.fritzboxtr064' version='1.9.0.201604211943'/>
+      <artifact classifier='osgi.bundle' id='org.openhab.binding.fritzboxtr064' version='1.9.0.201604221915'/>
     </artifacts>
     <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
     <touchpointData size='1'>
       <instructions size='1'>
         <instruction key='manifest'>
-          Bundle-SymbolicName: org.openhab.binding.fritzboxtr064&#xA;Bundle-Version: 1.9.0.201604211943&#xA;
+          Bundle-SymbolicName: org.openhab.binding.fritzboxtr064&#xA;Bundle-Version: 1.9.0.201604221915&#xA;
         </instruction>
       </instructions>
     </touchpointData>
